@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IBPS SO IT Mains Syllabus Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Visualization & Content Choices:
+        - Report Intro -> Inform -> Text Block -> None -> Standard way to introduce content.
+        - Exam Patterns (IBPS/SBI) -> Inform/Compare -> HTML Tables/Styled Divs & Chart.js Donut Chart (for IBPS weightage: 80% PK, 20% Interview) -> Tooltip -> Donut chart visually emphasizes the importance of PK for IBPS. Tables clearly lay out exam parameters.
+        - Detailed IBPS Syllabus (7 core subjects) -> Inform/Organize -> Headings, Bullet Lists, Text Blocks (for analysis per subject) -> Clickable sub-nav per subject, potentially expandable sections for sub-topics -> Hierarchical presentation for easy drilling down into specific subjects.
+        - IBPS vs. SBI Comparison -> Compare/Highlight -> Side-by-side textual comparison (using Tailwind grid/flex), lists for unique topics -> None -> Direct comparison facilitates understanding of nuances.
+        - Prep Strategy & Conclusion -> Advise/Summarize -> Text Blocks, Bullet Points -> None -> Clear presentation of actionable advice and summary.
+        - Library/Method: Chart.js for the donut chart. HTML/Tailwind for all structural and textual presentation.
+    -->
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc; /* bg-slate-50 - subtle, refined background */
+            color: #334155; /* text-slate-700 - improved readability */
+            line-height: 1.6;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            color: #64748b; /* text-slate-500 */
+            position: relative;
+            overflow: hidden;
+        }
+        .tab-button:hover {
+            color: #3b82f6; /* text-blue-500 */
+        }
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #3b82f6; /* blue-500 */
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease;
+        }
+        .tab-button:hover::after {
+            transform-origin: bottom left;
+            transform: scaleX(0.5);
+        }
+        .tab-button.active {
+            color: #1d4ed8; /* text-blue-700 */
+            font-weight: 600;
+        }
+        .tab-button.active::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .subject-button {
+            transition: all 0.3s ease;
+            background-color: #dbeafe; /* bg-blue-100 */
+            color: #2563eb; /* text-blue-600 */
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid #bfdbfe; /* border-blue-200 */
+        }
+        .subject-button:hover {
+            background-color: #bfdbfe; /* bg-blue-200 */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1);
+        }
+        .subject-button.active {
+            background-color: #3b82f6; /* bg-blue-500 */
+            color: white;
+            border-color: #2563eb; /* border-blue-600 */
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 384px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 288px;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.02);
+            border: 1px solid #f1f5f9; /* border-slate-100 */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 320px;
+                max-width: 448px;
+            }
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1e40af; /* text-blue-800 */
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+            line-height: 1.2;
+        }
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: #1e293b; /* text-slate-800 */
+            border-bottom: 2px solid #e2e8f0; /* border-slate-200 */
+            padding-bottom: 0.75rem;
+            letter-spacing: -0.025em;
+        }
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: #334155; /* text-slate-700 */
+            letter-spacing: -0.025em;
+        }
+        h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #475569; /* text-slate-600 */
+        }
+        p {
+            margin-bottom: 1.25rem;
+            line-height: 1.75;
+            color: #475569; /* text-slate-600 */
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+            color: #475569; /* text-slate-600 */
+        }
+        li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+            position: relative;
+            padding-left: 0.25rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            margin-bottom: 2rem;
+            border: 1px solid #f1f5f9; /* border-slate-100 */
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+        }
+        .table-container {
+            overflow-x: auto;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0; /* border-slate-200 */
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 0;
+        }
+        th, td {
+            border: 1px solid #e2e8f0; /* border-slate-200 */
+            padding: 1rem;
+            text-align: left;
+            color: #475569; /* text-slate-600 */
+        }
+        th {
+            background-color: #f8fafc; /* bg-slate-50 */
+            font-weight: 600;
+            color: #1e293b; /* text-slate-800 */
+            position: sticky;
+            top: 0;
+        }
+        /* Custom classes for enhanced styling */
+        .gradient-text {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .highlight-box {
+            background-color: #dbeafe; /* bg-blue-100 */
+            border-left: 4px solid #3b82f6; /* border-blue-500 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .feature-list li {
+            list-style-type: none;
+            padding-left: 1.5rem;
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #3b82f6; /* text-blue-500 */
+            font-weight: bold;
+        }
+        /* Improved user info card */
+        .user-info-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #bfdbfe; /* border-blue-200 */
+        }
+        .user-info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0) 70%);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-700 p-4 md:p-8">
+
+    <div class="container mx-auto max-w-5xl">
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold gradient-text">IBPS SO IT Mains Syllabus Explorer</h1>
+            <p class="text-slate-600 mt-3 text-lg">An interactive guide to the Professional Knowledge syllabus.</p>
+
+            <div class="user-info-card mt-8">
+                <div class="flex flex-col md:flex-row md:items-center">
+                    <div class="md:w-1/6 flex justify-center mb-4 md:mb-0">
+                        <div class="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                    </div>
+                    <div class="md:w-5/6">
+                        <p class="text-xl font-bold text-blue-700 mb-3">Hi everyone, I'm Vishal!</p>
+                        <p class="text-slate-700 mb-5 text-lg">I cleared SBI SO (IT) and IBPS SO IT in my first attempt while working full-time. I've got a month before joining and want to give back by sharing my strategy, resources, and helping with any doubts. Feel free to reach out!</p>
+                        
+                        <div class="mt-4 mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md flex items-center justify-between hover:bg-blue-700 transition-colors duration-300 border-2 border-blue-300 animate-pulse">
+                            <div class="flex items-center">
+                                <i class="fab fa-telegram text-3xl mr-3"></i>
+                                <div>
+                                    <p class="font-bold">Connect with me on Telegram!</p>
+                                    <p class="text-sm text-blue-100">Join our community for exclusive resources and doubt-clearing</p>
+                                </div>
+                            </div>
+                            <a href="https://t.me/soitguidance" target="_blank" rel="noopener noreferrer" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-50 transition-colors duration-300 flex items-center">
+                                <span>Join Now</span>
+                                <i class="fas fa-external-link-alt ml-2"></i>
+                            </a>
+                        </div>
+                        
+                        <div class="p-3 bg-white rounded-lg border border-red-200 shadow-sm">
+                            <p class="text-sm text-red-700 font-semibold flex items-center">
+                                <i class="fas fa-exclamation-circle mr-2 text-red-500"></i>
+                    <span class="font-bold">Disclaimer:</span> Please do not take this as the complete syllabus. I have tried to compile the topics to the best of my knowledge, but I am sure that there are some topics that are not mentioned here. Always refer to official notifications for the most accurate and complete syllabus.
+                </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="mb-8 card p-0 overflow-hidden">
+            <div class="flex flex-wrap justify-center border-b border-slate-200 bg-slate-50 rounded-t-xl">
+                <button class="tab-button py-3 px-6 md:px-8 active" data-tab="overview">
+                    <i class="fas fa-info-circle mr-2"></i>Overview & Exam Structure
+                </button>
+                <button class="tab-button py-3 px-6 md:px-8" data-tab="detailed-syllabus">
+                    <i class="fas fa-book mr-2"></i>Detailed IBPS Syllabus
+                </button>
+                <button class="tab-button py-3 px-6 md:px-8" data-tab="comparison">
+                    <i class="fas fa-balance-scale mr-2"></i>IBPS vs. SBI Comparison
+                </button>
+                <button class="tab-button py-3 px-6 md:px-8" data-tab="strategy">
+                    <i class="fas fa-chess mr-2"></i>Preparation & Conclusion
+                </button>
+            </div>
+        </div>
+
+        <div id="overview" class="tab-content active card">
+            <h2><i class="fas fa-info-circle text-blue-600 mr-2"></i>Overview & Exam Structure</h2>
+            <p class="highlight-box">This section provides an introduction to the IBPS SO IT Mains exam and compares its structure with the SBI SO IT exam. Understanding the exam pattern is the first step towards effective preparation.</p>
+            
+            <h3><i class="fas fa-graduation-cap text-blue-500 mr-2"></i>Introduction to the IBPS SO IT Mains Exam</h3>
+            <p>The Mains examination for the IBPS SO IT Officer primarily assesses a candidate's Professional Knowledge. This section is critical for selection, as its performance directly contributes to the final merit list. For the IBPS SO IT Officer Mains, the Professional Knowledge paper typically comprises 45 to 60 objective questions, carrying a maximum of 60 marks, to be completed within a duration of 30 to 45 minutes. This structure underscores the need for both accuracy and time management.</p>
+
+            <h3><i class="fas fa-balance-scale text-blue-500 mr-2"></i>Exam Pattern Comparison: IBPS SO IT vs. SBI SO IT</h3>
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-blue-50 p-6 rounded-lg shadow-md border border-blue-100 hover:shadow-lg transition-all duration-300">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white mr-3">
+                            <i class="fas fa-building-columns"></i>
+                        </div>
+                        <h4 class="m-0">IBPS SO IT Officer (Mains)</h4>
+                    </div>
+                    <ul class="list-none ml-0 text-slate-700 feature-list">
+                        <li><strong class="text-blue-700">Paper:</strong> Professional Knowledge (IT)</li>
+                        <li><strong class="text-blue-700">Questions:</strong> 45 to 60 Objective Questions</li>
+                        <li><strong class="text-blue-700">Max Marks:</strong> 60</li>
+                        <li><strong class="text-blue-700">Duration:</strong> 30 to 45 minutes</li>
+                        <li><strong class="text-blue-700">Merit Calculation:</strong> Professional Knowledge section carries 80% weightage, Interview 20%.</li>
+                    </ul>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg shadow-md border border-green-100 hover:shadow-lg transition-all duration-300">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white mr-3">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <h4 class="m-0">SBI SO IT (e.g., Assistant Manager - System)</h4>
+                    </div>
+                    <ul class="list-none ml-0 text-slate-700 feature-list">
+                        <li><strong class="text-green-700">Paper:</strong> Professional Knowledge (IT)</li>
+                        <li><strong class="text-green-700">Questions:</strong> 60 Questions</li>
+                        <li><strong class="text-green-700">Max Marks:</strong> 100</li>
+                        <li><strong class="text-green-700">Duration:</strong> 75 minutes</li>
+                        <li><strong class="text-green-700">Merit Calculation:</strong> Marks in Professional Knowledge paper are the sole determinant for merit (Reasoning, Quant, English are qualifying).</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h3><i class="fas fa-chart-pie text-blue-500 mr-2"></i>IBPS SO IT Mains - Score Weightage</h3>
+            <p>The Professional Knowledge test is highly significant for the IBPS SO IT Mains. The following chart illustrates the weightage distribution for the final merit list.</p>
+            <div class="chart-container">
+                <canvas id="ibpsWeightageChart"></canvas>
+            </div>
+            <p class="mt-6 text-sm text-slate-500 text-center">This highlights the critical importance of scoring well in the Professional Knowledge section.</p>
+        </div>
+
+        <div id="detailed-syllabus" class="tab-content card">
+            <h2><i class="fas fa-book text-blue-600 mr-2"></i>Detailed IBPS Syllabus</h2>
+            <p class="highlight-box">This section provides a comprehensive breakdown of the Professional Knowledge syllabus for the IBPS SO IT Officer. You can navigate to specific subjects to understand the key concepts and expected depth of knowledge. The syllabus consistently covers core IT domains, and insights from the SBI SO IT syllabus are used for detailed sub-topics where applicable.</p>
+            
+            <div class="flex flex-wrap gap-3 mb-8 border-b pb-4 overflow-x-auto whitespace-nowrap md:whitespace-normal">
+                <button class="subject-button active" data-subject="dbms">
+                    <i class="fas fa-database mr-1"></i> DBMS
+                </button>
+                <button class="subject-button" data-subject="networking">
+                    <i class="fas fa-network-wired mr-1"></i> Networking
+                </button>
+                <button class="subject-button" data-subject="os">
+                    <i class="fas fa-desktop mr-1"></i> Operating System
+                </button>
+                <button class="subject-button" data-subject="swe">
+                    <i class="fas fa-code mr-1"></i> Software Engineering
+                </button>
+                <button class="subject-button" data-subject="ds">
+                    <i class="fas fa-sitemap mr-1"></i> Data Structures
+                </button>
+                <button class="subject-button" data-subject="co-mp">
+                    <i class="fas fa-microchip mr-1"></i> Computer Org & Microprocessor
+                </button>
+                <button class="subject-button" data-subject="oop">
+                    <i class="fas fa-cube mr-1"></i> OOP
+                </button>
+            </div>
+
+            <div id="subject-dbms" class="subject-content active bg-white p-6 rounded-lg border border-blue-100 shadow-sm">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                        <i class="fas fa-database text-xl"></i>
+                    </div>
+                    <h3 class="m-0">Database Management System (DBMS)</h3>
+                </div>
+                <p>This fundamental area is consistently identified as a core component. Financial institutions rely heavily on robust and secure database management systems. Candidates are expected to possess theoretical knowledge and practical proficiency in SQL.</p>
+                <h4 class="flex items-center"><i class="fas fa-list-check text-blue-500 mr-2"></i>Key Concepts & Sub-topics:</h4>
+                <ul>
+                    <li>Relational Database Management Systems (RDBMS), Entity-Relationship (ER) Diagrams</li>
+                    <li>Transactions and their ACID (Atomicity, Consistency, Isolation, Durability) Properties</li>
+                    <li>Various types of Keys (Primary, Foreign, Candidate, Alternate, etc.), Indexes</li>
+                    <li>Normalization techniques, and different types of Joins</li>
+                    <li>SQL Commands: Data Definition Language (DDL), Data Manipulation Language (DML), and Transaction Control Language (TCL)</li>
+                    <li>Advanced Database Objects: Views, Triggers, and Cursors</li>
+                </ul>
+                <h4 class="flex items-center"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>Analytical Insight:</h4>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">The consistent emphasis on DBMS underscores its foundational importance in banking IT operations. Practical understanding of SQL and transaction properties is crucial for data integrity, consistency, and system reliability. The inclusion of Views, Triggers, and Cursors suggests a deeper level of SQL knowledge is anticipated.</p>
+            </div>
+
+            <div id="subject-networking" class="subject-content hidden bg-white p-6 rounded-lg border border-blue-100 shadow-sm">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                        <i class="fas fa-network-wired text-xl"></i>
+                    </div>
+                    <h3 class="m-0">Data Communication & Networking</h3>
+                </div>
+                <p>Networking forms another critical pillar. Secure and efficient data transfer is paramount in banking operations, making network security aspects highly important.</p>
+                <h4 class="flex items-center"><i class="fas fa-list-check text-blue-500 mr-2"></i>Key Concepts & Sub-topics:</h4>
+                <ul>
+                    <li>Network Fundamentals: Types of Networks (LAN, WAN, MAN, etc.), Network Topologies (Ring, Mesh, Bus, Star, etc.), Network Devices (Hub, Bridge, Routers, Gateway, etc.)</li>
+                    <li>Network Models: OSI (Open Systems Interconnection) Data Model, TCP/IP (Transmission Control Protocol/Internet Protocol) Model</li>
+                    <li>Addressing & Protocols: Subnets and Supernets, UDP and TCP, sockets and ports, IPv4 versus IPv6, Classless Inter-Domain Routing (CIDR), IP support protocols (ARP, DHCP, ICMP), Network Address Translation (NAT)</li>
+                    <li>Application Layer Protocols: DNS, SMTP, HTTP, FTP, Telnet, SNMP, POP3, etc.</li>
+                    <li>Network Security: Firewalls, Access Control mechanisms, Remote Access VPNs, Types of Firewalls</li>
+                </ul>
+                <h4 class="flex items-center"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>Analytical Insight:</h4>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">Given the nature of banking operations, network security is critical. Candidates should understand how networks are safeguarded, including firewall functionalities and access control, indispensable for an IT Officer role.</p>
+            </div>
+            
+            <div id="subject-os" class="subject-content hidden bg-white p-6 rounded-lg border border-blue-100 shadow-sm">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                        <i class="fas fa-desktop text-xl"></i>
+                    </div>
+                    <h3 class="m-0">Operating System (OS)</h3>
+                </div>
+                <p>The Operating System is a core subject. Practical knowledge of OS concepts in enterprise settings like Windows and Unix/Linux environments is expected.</p>
+                <h4 class="flex items-center"><i class="fas fa-list-check text-blue-500 mr-2"></i>Key Concepts & Sub-topics:</h4>
+                <ul>
+                    <li>Core Concepts: System calls, processes, threads, inter-process communication, concurrency and synchronization, Deadlock</li>
+                    <li>Memory Management: Virtual memory, types of memories (cache, main, secondary), Paging, Page Replacement Algorithms (FIFO, Optimal, LRU, etc.)</li>
+                    <li>CPU Scheduling: Algorithms (FCFS, SJF, SRTF, Round Robin, etc.)</li>
+                    <li>I/O Management: I/O Scheduling algorithms (FCFS, SSTF, SCAN, LOOK, CSCAN, CLOOK, etc.)</li>
+                    <li>Environments: Windows and Unix/Linux computing environments</li>
+                </ul>
+                <h4 class="flex items-center"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>Analytical Insight:</h4>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">The exam expects practical knowledge of OS concepts in real-world enterprise settings. Understanding implications in different OS environments (Windows, Linux/Unix) and basic administration familiarity is advantageous.</p>
+            </div>
+
+            <div id="subject-swe" class="subject-content hidden bg-white p-6 rounded-lg border border-blue-100 shadow-sm">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                        <i class="fas fa-code text-xl"></i>
+                    </div>
+                    <h3 class="m-0">Software Engineering</h3>
+                </div>
+                <p>Software Engineering is fundamental. The syllabus extends to modern design and architectural paradigms crucial for scalable and resilient banking applications.</p>
+                <h4 class="flex items-center"><i class="fas fa-list-check text-blue-500 mr-2"></i>Key Concepts & Sub-topics:</h4>
+                <ul>
+                    <li>Software Development Lifecycle (SDLC): Phases (Requirement analysis, Planning, Design, Coding, Testing, Deployment, Maintenance)</li>
+                    <li>Software Testing: Concepts (Black Box, White Box, Unit/Integration/Regression Testing, UAT)</li>
+                    <li>Design Principles: Design Patterns, SOLID principles</li>
+                    <li>Architecture: Monolith versus Microservice architecture</li>
+                </ul>
+                <h4 class="flex items-center"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>Analytical Insight:</h4>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">Modern software design (Design Patterns, SOLID) and architecture (Monolith vs. Microservice) are key. Candidates should grasp their rationale, advantages, and disadvantages for large-scale enterprise systems.</p>
+            </div>
+
+            <div id="subject-ds" class="subject-content hidden bg-white p-6 rounded-lg border border-blue-100 shadow-sm">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                        <i class="fas fa-sitemap text-xl"></i>
+                    </div>
+                    <h3 class="m-0">Data Structures</h3>
+                </div>
+                <p>Data Structures are a core component. Emphasis is on understanding performance implications (Space-Time Complexities) and analyzing code snippets.</p>
+                <h4 class="flex items-center"><i class="fas fa-list-check text-blue-500 mr-2"></i>Key Concepts & Sub-topics:</h4>
+                <ul>
+                    <li>Fundamental Structures: Arrays, Linked Lists, Stacks, Queues, Binary Trees, Binary Search Trees, Heaps, Hashing, Recursion</li>
+                    <li>Algorithms: Searching and Sorting Algorithms, Space-Time Complexities</li>
+                    <li>Traversal Strategies: Breadth-First Search (BFS), Depth-First Search (DFS)</li>
+                    <li>Code Snippets: Questions based on Data Structures, potentially involving code</li>
+                </ul>
+                <h4 class="flex items-center"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>Analytical Insight:</h4>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">Beyond knowing data structures, comprehending their performance and analyzing code is vital. Practice problem-solving with a focus on optimization and efficiency for high-transaction banking environments.</p>
+            </div>
+            
+            <div id="subject-co-mp" class="subject-content hidden bg-white p-6 rounded-lg border border-blue-100 shadow-sm">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                        <i class="fas fa-microchip text-xl"></i>
+                    </div>
+                    <h3 class="m-0">Computer Organization & Microprocessor</h3>
+                </div>
+                <p>This subject suggests a focus on the internal workings of a computer system, including CPU architecture and microprocessor fundamentals. This appears to be a more explicit focus for IBPS.</p>
+                <h4 class="flex items-center"><i class="fas fa-list-check text-blue-500 mr-2"></i>Key Concepts & Sub-topics:</h4>
+                <ul>
+                    <li>Computer Architecture (CPU, Memory Hierarchy, I/O organization)</li>
+                    <li>Microprocessor fundamentals (Architecture, Instruction Sets, Addressing Modes)</li>
+                    <li>Basic assembly language concepts</li>
+                </ul>
+                <h4 class="flex items-center"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>Analytical Insight:</h4>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">IBPS expects a foundational understanding of how computer hardware operates at a lower level. This is a more academic/fundamental prerequisite compared to some application-focused aspects in other syllabi.</p>
+            </div>
+
+            <div id="subject-oop" class="subject-content hidden bg-white p-6 rounded-lg border border-blue-100 shadow-sm">
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                        <i class="fas fa-cube text-xl"></i>
+                    </div>
+                    <h3 class="m-0">Object-Oriented Programming (OOP)</h3>
+                </div>
+                <p>OOP is consistently listed as a core subject. A thorough understanding of its principles is non-negotiable for modern software development in banks.</p>
+                <h4 class="flex items-center"><i class="fas fa-list-check text-blue-500 mr-2"></i>Key Concepts & Sub-topics:</h4>
+                <ul>
+                    <li>Core Concepts: Abstraction, Association, Encapsulation, Composition, Polymorphism, Aggregation, Inheritance, Message Passing</li>
+                </ul>
+                <h4 class="flex items-center"><i class="fas fa-lightbulb text-blue-500 mr-2"></i>Analytical Insight:</h4>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">Candidates are expected to comprehend OOP concepts theoretically and be able to apply them, potentially analyzing code snippets demonstrating these principles.</p>
+            </div>
+        </div>
+
+        <div id="comparison" class="tab-content card">
+            <h2><i class="fas fa-balance-scale text-blue-600 mr-2"></i>IBPS SO IT vs. SBI SO IT 2024 Mains Syllabus Comparison</h2>
+            <p class="highlight-box">This section provides a comparative view of the IBPS SO IT and SBI SO IT Mains Professional Knowledge syllabi. Understanding these differences and similarities helps in tailoring preparation effectively.</p>
+
+            <div class="bg-gradient-to-r from-blue-50 to-white p-6 rounded-lg shadow-sm mb-6 border border-blue-100">
+                <h3 class="flex items-center"><i class="fas fa-sync-alt text-blue-500 mr-2"></i>Overlapping Core IT Subjects</h3>
+            <p>Many core IT subjects are common, indicating a standardized set of competencies expected for IT Officer roles. The granular sub-topics in the SBI syllabus can serve as a reference for the depth expected in these overlapping areas for IBPS.</p>
+                <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+                    <li class="flex items-center bg-white p-3 rounded shadow-sm border border-blue-100">
+                        <i class="fas fa-check-circle text-blue-500 mr-2"></i> Database Management System
+                    </li>
+                    <li class="flex items-center bg-white p-3 rounded shadow-sm border border-blue-100">
+                        <i class="fas fa-check-circle text-blue-500 mr-2"></i> Data Communication & Networking
+                    </li>
+                    <li class="flex items-center bg-white p-3 rounded shadow-sm border border-blue-100">
+                        <i class="fas fa-check-circle text-blue-500 mr-2"></i> Operating System
+                    </li>
+                    <li class="flex items-center bg-white p-3 rounded shadow-sm border border-blue-100">
+                        <i class="fas fa-check-circle text-blue-500 mr-2"></i> Software Engineering
+                    </li>
+                    <li class="flex items-center bg-white p-3 rounded shadow-sm border border-blue-100">
+                        <i class="fas fa-check-circle text-blue-500 mr-2"></i> Data Structures
+                    </li>
+                    <li class="flex items-center bg-white p-3 rounded shadow-sm border border-blue-100">
+                        <i class="fas fa-check-circle text-blue-500 mr-2"></i> Object-Oriented Programming
+                    </li>
+            </ul>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-6 rounded-lg shadow-sm border border-blue-100">
+                    <h3 class="flex items-center text-blue-800"><i class="fas fa-building-columns text-blue-600 mr-2"></i>Topics More Explicitly Emphasized in IBPS SO IT Mains</h3>
+            <p>The most prominent explicit difference is:</p>
+            <ul>
+                        <li class="flex items-start mt-3">
+                            <div class="mt-1 text-blue-600 mr-2"><i class="fas fa-microchip"></i></div>
+                            <div>
+                                <strong>Computer Organization & Microprocessor:</strong> This is a distinct category in the IBPS syllabus, suggesting a higher emphasis on underlying hardware architecture and low-level functioning of computer systems.
+                            </div>
+                        </li>
+            </ul>
+                </div>
+            
+                <div class="bg-green-50 p-6 rounded-lg shadow-sm border border-green-100">
+                    <h3 class="flex items-center text-green-800"><i class="fas fa-landmark text-green-600 mr-2"></i>Topics More Explicitly Emphasized in SBI SO IT Mains</h3>
+            <p>The SBI SO IT 2024 syllabus includes certain topics that are more explicitly detailed or presented as major sections:</p>
+            <ul>
+                        <li class="flex items-start mt-3">
+                            <div class="mt-1 text-green-600 mr-2"><i class="fas fa-cloud"></i></div>
+                            <div>
+                                <strong>Cloud Operations:</strong> Includes Cloud Computing characteristics, service types (SaaS, PaaS, IaaS), Public vs. Private Cloud, Virtualization, Containerization, CI/CD.
+                            </div>
+                        </li>
+                        <li class="flex items-start mt-3">
+                            <div class="mt-1 text-green-600 mr-2"><i class="fas fa-shield-alt"></i></div>
+                            <div>
+                                <strong>Web Application Security Risks:</strong> Explicitly lists attacks like XSS, CSRF, Injection, DDoS, Brute Force, and OWASP Top 10 Web-Security Risks.
+                            </div>
+                        </li>
+                        <li class="flex items-start mt-3">
+                            <div class="mt-1 text-green-600 mr-2"><i class="fas fa-key"></i></div>
+                            <div>
+                                <strong>Digital Signatures & Encryption:</strong> Covers use cases, Public-Private Key Encryption (Symmetric/Asymmetric Keys).
+                            </div>
+                        </li>
+            </ul>
+                </div>
+            </div>
+            <p>While not explicitly primary subjects in IBPS, a foundational understanding of these (especially security and cloud basics) provides a competitive advantage.</p>
+
+            <h3 class="flex items-center mt-8"><i class="fas fa-table text-blue-500 mr-2"></i>Syllabus Comparison Table</h3>
+            <div class="table-container mt-4">
+                <table>
+                    <thead>
+                        <tr class="bg-blue-100">
+                            <th class="text-blue-800">Category</th>
+                            <th class="text-blue-800">IBPS SO IT Mains (Explicitly Listed)</th>
+                            <th class="text-green-800">SBI SO IT 2024 Mains (Explicitly Listed/Detailed)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong class="text-slate-800">Common Core Subjects</strong></td>
+                            <td>Database Management System, Data Communication & Networking, Operating System, Software Engineering, Data Structures, Object-Oriented Programming</td>
+                            <td>Database Management System (under Software Development), Data Communication & Networking (as Networking), Operating System (under Infra Support), Software Engineering (under Software Development), Data Structures (under Software Development), Object-Oriented Programming (under Software Development)</td>
+                        </tr>
+                        <tr class="bg-blue-50">
+                            <td><strong class="text-slate-800">Topics More Explicitly Emphasized in IBPS</strong></td>
+                            <td class="font-semibold text-blue-700">Computer Organization & Microprocessor</td>
+                            <td>Related concepts (processors, cache memory) integrated under "Infra Support"</td>
+                        </tr>
+                        <tr class="bg-green-50">
+                            <td><strong class="text-slate-800">Topics More Explicitly Emphasized in SBI</strong></td>
+                            <td>(Implicitly covered within broader subjects)</td>
+                            <td class="font-semibold text-green-700">Cloud Operations (dedicated section), Web Application Security Risks (e.g., XSS, CSRF, Injection, DDoS, OWASP Top 10), Digital Signatures & Encryption (Public-Private Key, Symmetric/Asymmetric Keys)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="strategy" class="tab-content card">
+            <h2><i class="fas fa-chess text-blue-600 mr-2"></i>Strategic Preparation Guidance & Conclusion</h2>
+            <p class="highlight-box">This section outlines effective preparation strategies for the IBPS SO IT Mains exam and summarizes the key takeaways from the syllabus analysis.</p>
+
+            <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg shadow-sm mb-8 border border-indigo-100">
+                <h3 class="flex items-center text-indigo-800"><i class="fas fa-user-clock text-indigo-600 mr-2"></i>My Personal Strategy & Experience</h3>
+                
+                <div class="bg-white p-5 rounded-lg shadow-sm mt-4 border border-indigo-100">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 mr-3">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h4 class="text-indigo-800 m-0">My Work-Study Balance</h4>
+                    </div>
+                    <p class="mb-2">I was working from 10 AM to 5 PM, after which I took a rest and studied for 2-3 hours daily. Having a work-from-home job helped me significantly in managing my time efficiently.</p>
+                    <p class="bg-indigo-50 p-3 rounded-lg text-indigo-700 font-medium">
+                        <i class="fas fa-trophy text-yellow-500 mr-2"></i> <span class="font-bold">Results:</span> Scored 30.5/60 in IBPS SO IT Mains and 58/100 in total. Got selected in PNB and SBI, currently waiting to join SBI.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mt-6">
+                    <!-- Prelims Strategy -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-blue-100">
+                        <div class="flex items-center mb-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <h4 class="text-blue-800 m-0">Prelims Strategy</h4>
+                        </div>
+                        <ul class="space-y-3 mt-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Focused purely on clearing the cutoff—not topping it</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Gave 15+ mock tests, analyzed each one to find strengths and weaknesses</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Improved speed and accuracy in strong areas</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Didn't use any books—just mock analysis + targeted practice</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-lightbulb text-yellow-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>With time, you'll start noticing patterns in the mocks (e.g., 15 puzzle questions, 5 statement-based, etc.)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-bullseye text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Key point: You don't need to be a topper. Just aim for 20% above the cutoff, and that's more than enough</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Mains Strategy -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-green-100">
+                        <div class="flex items-center mb-3">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h4 class="text-green-800 m-0">Mains Strategy</h4>
+                        </div>
+                        <ul class="space-y-3 mt-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Took a course from Gatesmasher (₹1000 – can be shared with friends if cost is an issue)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Prioritized high-weightage subjects: Computer Networks (CN), OS, DBMS, and DSA</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-shield-alt text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Paid special attention to <strong>Cybersecurity</strong> topics, particularly the OWASP Top 10 web security risks, which appear frequently in exams</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Revised key subjects at least 3 times</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-robot text-purple-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Used ChatGPT for deep dives – after each topic, asked it to quiz me with 50 questions and explain mistakes</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-500 mt-1 mr-2 flex-shrink-0"></i>
+                                <span>Skipped low-weightage topics that are rarely asked and take too much time to master</span>
+                            </li>
+                        </ul>
+                        <p class="mt-4 bg-green-50 p-3 rounded-lg font-semibold text-green-700">
+                            Smart focus > covering everything. Focus on revising important subjects multiple times.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-lg shadow-sm mb-8 border border-blue-100">
+                <h3 class="flex items-center"><i class="fas fa-bullseye text-blue-600 mr-2"></i>Strategic Preparation Guidance</h3>
+            <p>Effective preparation necessitates a strategic approach prioritizing explicitly listed subjects while leveraging insights from the SBI SO IT 2024 syllabus for depth.</p>
+                <ul class="mt-4 space-y-4">
+                    <li class="flex items-start bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div>
+                            <strong class="text-blue-800">Primary Focus Areas:</strong> <span class="font-semibold text-red-600">Computer Networks (CN), Operating Systems (OS), Database Management Systems (DBMS), and Data Structures & Algorithms (DSA)</span> are the most critical subjects and are high weightage. <span class="font-semibold text-red-600">Cybersecurity</span> (especially the OWASP Top 10) is also crucial. Secondary areas include Software Engineering, Computer Organization & Microprocessor, and Object-Oriented Programming.
+                        </div>
+                    </li>
+                    <li class="flex items-start bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="fas fa-exclamation"></i>
+                        </div>
+                        <div>
+                            <strong class="text-blue-800">Special Attention:</strong> Computer Organization & Microprocessor warrants particular attention for IBPS.
+                        </div>
+                    </li>
+                    <li class="flex items-start bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div>
+                            <strong class="text-blue-800">Weightage Reminder:</strong> The Professional Knowledge section carries an 80% weightage in the final IBPS merit list.
+                        </div>
+                    </li>
+                    <li class="flex items-start bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="fas fa-ruler-vertical"></i>
+                        </div>
+                        <div>
+                            <strong class="text-blue-800">Depth of Study:</strong> For subjects explicitly mentioned by IBPS, aim for comprehensive depth indicated by detailed sub-topics in the SBI syllabus. For example, use SBI's "Software Development" section for "Software Engineering" details, and SBI's "Networking" section for "Data Communication & Networking" specifics.
+                        </div>
+                    </li>
+                    <li class="flex items-start bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div>
+                            <strong class="text-blue-800">SBI Syllabus as a Resource:</strong> The SBI syllabus provides a granular breakdown that can function as an extended syllabus for IBPS, helping to create an actionable study plan.
+                        </div>
+                    </li>
+            </ul>
+            </div>
+
+            <h3 class="flex items-center"><i class="fas fa-flag-checkered text-blue-600 mr-2"></i>Conclusion</h3>
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-blue-100">
+            <p>The IBPS SO IT Mains examination demands a robust understanding of core IT concepts. While the SBI SO IT 2024 syllabus shares common ground, it offers a more granular breakdown that can be strategically leveraged.</p>
+            <p>Core subjects like DBMS, Networking, OS, Software Engineering, Data Structures, and OOP form the backbone. A key distinction for IBPS is its explicit emphasis on "Computer Organization & Microprocessor." Conversely, SBI's syllabus details modern areas like Cloud Operations, Web Application Security, and Encryption, which are valuable knowledge for any banking IT professional.</p>
+                <p class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400 mt-4">
+                    <strong class="text-blue-800">Key Takeaway:</strong> For optimal preparation, prioritize a deep dive into all subjects explicitly listed in the IBPS syllabus, using SBI's detailed sub-topics as a guide for depth in overlapping areas. This ensures comprehensive coverage and positions candidates for success.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabs = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(item => item.classList.remove('active'));
+                tab.classList.add('active');
+
+                const targetTab = tab.getAttribute('data-tab');
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        const subjectButtons = document.querySelectorAll('.subject-button');
+        const subjectContents = document.querySelectorAll('.subject-content');
+
+        subjectButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                subjectButtons.forEach(item => item.classList.remove('active'));
+                button.classList.add('active');
+
+                const targetSubject = button.getAttribute('data-subject');
+                subjectContents.forEach(content => {
+                    content.classList.add('hidden');
+                    content.classList.remove('active');
+                    if (content.id === `subject-${targetSubject}`) {
+                        content.classList.remove('hidden');
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+        
+        const ibpsWeightageCtx = document.getElementById('ibpsWeightageChart').getContext('2d');
+        new Chart(ibpsWeightageCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Professional Knowledge (80%)', 'Interview (20%)'],
+                datasets: [{
+                    label: 'IBPS SO IT Mains Weightage',
+                    data: [80, 20],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)', /* blue-500 with transparency */
+                        'rgba(239, 68, 68, 0.8)'   /* red-500 with transparency */
+                    ],
+                    borderColor: [
+                        'rgba(37, 99, 235, 1)',    /* blue-600 */
+                        'rgba(220, 38, 38, 1)'     /* red-600 */
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: {
+                                size: 14,
+                                family: "'Poppins', sans-serif"
+                            },
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + '%';
+                                }
+                                return label;
+                            }
+                        },
+                        titleFont: {
+                            size: 16,
+                            family: "'Poppins', sans-serif"
+                        },
+                        bodyFont: {
+                            size: 14,
+                            family: "'Poppins', sans-serif"
+                        },
+                        padding: 12,
+                        cornerRadius: 8,
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        titleColor: '#1e40af',
+                        bodyColor: '#334155',
+                        borderColor: '#bfdbfe',
+                        borderWidth: 1
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+    </script>
+</body>
+</html>
